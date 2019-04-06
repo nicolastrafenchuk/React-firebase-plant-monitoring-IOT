@@ -28,8 +28,17 @@ class Firebase {
     doSignInWithEmailAndPassword = (email,password) => 
     this.auth.signInWithEmailAndPassword(email,password);
 
-    
+    //Вихід з системи
 
+    doSignOut = () => this.auth.signOut();
+
+    //Скинути пароль
+
+    doPasswordReset = email => this.auth.sendPasswordResetEmail(email);
+
+    //Оновити пароль
+
+    doPasswordUpdate = password => this.auth.currentUser.updatePassword(password);
 }
 
 export default Firebase;

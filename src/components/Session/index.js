@@ -1,9 +1,5 @@
-import React from 'react';
+import AuthUserContext from "./context";
+import withAuthentification from './withAuthentication';
+import withAutorization from './withAutorization';
 
-const Session = () => (
-    <div>
-        <h1>Session</h1>
-    </div>
-);
-
-export default Session;
+export { AuthUserContext, withAuthentification, withAutorization };

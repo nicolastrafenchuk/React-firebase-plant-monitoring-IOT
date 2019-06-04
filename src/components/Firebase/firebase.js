@@ -1,5 +1,6 @@
 import app from 'firebase/app';
 import 'firebase/auth';
+import 'firebase/database';
 
 const config = {
     apiKey: "AIzaSyArmlePSq2Ec_8EY49eyAFJnMM9TUZUFtk",
@@ -13,8 +14,11 @@ const config = {
 class Firebase {
     constructor() {
         app.initializeApp(config);
+        this.serverValue = app.firestore.ServerValue;
 
         this.auth = app.auth();
+        this.db = app.firestore();
+        
     }
 
     //Використаємо FIREBASE AUTH API:
@@ -39,6 +43,51 @@ class Firebase {
     //Оновити пароль
 
     doPasswordUpdate = password => this.auth.currentUser.updatePassword(password);
+
+    onAuthUserListener = (next, fallback) =>
+    this.auth.onAuthStateChanged(authUser => {
+      if (authUser) {
+        this.user(authUser.uid)
+          .get('value')
+          .then(snapshot => {
+            const dbUser = snapshot.data();
+
+            // default empty roles
+            if (!dbUser.roles) {
+              dbUser.roles = {};
+            }
+
+            // merge auth and db user
+            authUser = {
+              uid: authUser.uid,
+              email: authUser.email,
+              emailVerified: authUser.emailVerified,
+              providerData: authUser.providerData,
+              ...dbUser,
+            };
+
+            next(authUser);
+          });
+      } else {
+        fallback();
+      }
+    });
+
+       // *** User API ***
+
+    user = uid => this.db.doc(`users/${uid}`);
+
+    users = () => this.db.collection('users');
+    humidity = () => this.db.collection('humidity');
+    temperature = () => this.db.collection('temperature');
+    pressure = () => this.db.collection('pressure');
+    humidity_g = () => this.db.collection('humidity_g');
+    
+    // *** Message API ***
+    
+    message = uid => this.db.doc(`messages/${uid}`);
+    
+    messages = () => this.db.collection('messages');
 }
 
 export default Firebase;

@@ -5,12 +5,17 @@ import { compose } from 'recompose';
 import SignUpLink from '../SignUp';
 import { withFirebase } from '../Firebase';
 import * as ROUTES from '../../constants/routes';
+import Button from '@material-ui/core/Button';
+import TypoGraphy from '@material-ui/core/Typography';
 
+
+//<SignUpLink />
 const SignInPage = () => (
-    <div>
-        <h1>SignIn</h1>
-        <SignInForm />
-        <SignUpLink />
+    <div style={{textAlign: "center"}}>
+        <TypoGraphy color="inherit" variant="title">
+            <h4>Please, enter you sign in data below</h4>
+            <SignInForm />
+        </TypoGraphy>
     </div>
 );
 
@@ -38,6 +43,8 @@ class SignInFormBase extends Component {
         .catch(error => {
             this.setState({ error });
         }); 
+
+        event.preventDefault();
     };
 
     onChange = event => {
@@ -50,7 +57,8 @@ class SignInFormBase extends Component {
         const isInvalid = password === '' | email === '';
 
         return (
-            <form onSubmit = {this.onSubmit}>
+            <div style={{textAlign: 'center'}}>
+            <form onSubmit = {this.onSubmit} style={{display: 'inline-block'}}>
                 <input
                     name='email'
                     value={email}
@@ -65,12 +73,13 @@ class SignInFormBase extends Component {
                     type='password'
                     placeholder='Password'
                 />
-                <button disabled={isInvalid} type='submit'>
+                <Button disabled={isInvalid} type='submit'>
                     Sign In
-                </button>
+                </Button>
 
                 {error && <p>{error.message}</p>}
             </form>
+            </div>
         );
     }
 }

@@ -1,19 +1,14 @@
 import React from 'react';
 import { AuthUserContext } from '../Session';
-import { auth } from 'firebase';
-import NavigationAuth from './NavigationAuth'
-import NavigationNonAuth from './NavigationNonAuth'
-
-
+import NavigationAuth from './NavigationAuth';
+import NavigationNonAuth from './NavigationNonAuth';
 
 const Navigation = () => (
-    <div>
-        <AuthUserContext.Consumer>
-            {authUser =>
-                authUser ? <NavigationAuth /> : <NavigationNonAuth />
-            }
-        </AuthUserContext.Consumer>
-    </div>
+  <div>
+    <AuthUserContext.Consumer>
+      {(authUser) => (authUser ? <NavigationAuth /> : <NavigationNonAuth />)}
+    </AuthUserContext.Consumer>
+  </div>
 );
 
 export default Navigation;

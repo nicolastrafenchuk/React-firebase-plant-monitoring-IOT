@@ -10,25 +10,33 @@
     "@material-ui/styles": "^4.0.1",
     "@nivo/line": "^0.56.2",
     "chart.js": "^2.8.0",
+    "clsx": "^1.0.4",
     "date-fns": "^2.0.0-alpha.27",
+    "eslint-plugin-react": "^7.14.3",
     "firebase": "^5.9.2",
     "react": "^16.8.6",
     "react-chartjs-2": "^2.7.6",
     "react-dom": "^16.8.6",
-    "react-hero-video": "^0.1.1",
-    "react-player": "^1.11.0",
+    "react-router": "^5.0.1",
     "react-router-dom": "^5.0.0",
     "react-scripts": "2.1.8",
-    "react-swipeable-views": "^0.13.3",
-    "react-youtube-background": "^0.1.4",
     "recompose": "^0.30.0",
     "typeface-roboto": "^0.0.54"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-prettier": "^6.3.0",
+    "eslint-config-react": "^1.1.7",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.1",
+    "prettier": "^1.18.2"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint src/**"
   },
   "eslintConfig": {
     "extends": "react-app"

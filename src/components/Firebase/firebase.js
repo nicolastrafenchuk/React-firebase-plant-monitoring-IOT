@@ -1,55 +1,58 @@
 import app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/database';
+import 'firebase/firestore';
 
 const config = {
-    apiKey: "AIzaSyArmlePSq2Ec_8EY49eyAFJnMM9TUZUFtk",
-    authDomain: "plant-monitor-150ee.firebaseapp.com",
-    databaseURL: "https://plant-monitor-150ee.firebaseio.com",
-    projectId: "plant-monitor-150ee",
-    storageBucket: "plant-monitor-150ee.appspot.com",
-    messagingSenderId: "384585451438"
+  apiKey: 'AIzaSyArmlePSq2Ec_8EY49eyAFJnMM9TUZUFtk',
+  authDomain: 'plant-monitor-150ee.firebaseapp.com',
+  databaseURL: 'https://plant-monitor-150ee.firebaseio.com',
+  projectId: 'plant-monitor-150ee',
+  storageBucket: 'plant-monitor-150ee.appspot.com',
+  messagingSenderId: '384585451438',
 };
 
 class Firebase {
-    constructor() {
-        app.initializeApp(config);
-        this.serverValue = app.firestore.ServerValue;
+  constructor() {
+    app.initializeApp(config);
+    this.serverValue = app.firestore.ServerValue;
 
-        this.auth = app.auth();
-        this.db = app.firestore();
-        
-    }
+    this.auth = app.auth();
+    this.db = app.firestore();
+  }
 
-    //Використаємо FIREBASE AUTH API:
-    //Створюємо користувача, точніше реєструємо за допомогою email та password:
-    
-    doCreateUserWithEmailAndPassword = (email,password) => 
-    this.auth.createUserWithEmailAndPassword(email,password);
-    
-    //Вхід в наш застосунок за допомогою email та password:
-    
-    doSignInWithEmailAndPassword = (email,password) => 
-    this.auth.signInWithEmailAndPassword(email,password);
+  // Використаємо FIREBASE AUTH API:
+  // Створюємо користувача, точніше реєструємо за допомогою email та password:
 
-    //Вихід з системи
+  // eslint-disable-next-line max-len
+  doCreateUserWithEmailAndPassword = (email, password) =>
+    this.auth.createUserWithEmailAndPassword(email, password);
 
-    doSignOut = () => this.auth.signOut();
+  // Вхід в наш застосунок за допомогою email та password:
 
-    //Скинути пароль
+  // eslint-disable-next-line max-len
+  doSignInWithEmailAndPassword = (email, password) =>
+    this.auth.signInWithEmailAndPassword(email, password);
 
-    doPasswordReset = email => this.auth.sendPasswordResetEmail(email);
+  // Вихід з системи
 
-    //Оновити пароль
+  doSignOut = () => this.auth.signOut();
 
-    doPasswordUpdate = password => this.auth.currentUser.updatePassword(password);
+  // Скинути пароль
 
-    onAuthUserListener = (next, fallback) =>
-    this.auth.onAuthStateChanged(authUser => {
+  doPasswordReset = (email) => this.auth.sendPasswordResetEmail(email);
+
+  // Оновити пароль
+
+  doPasswordUpdate = (password) =>
+    this.auth.currentUser.updatePassword(password);
+
+  onAuthUserListener = (next, fallback) =>
+    this.auth.onAuthStateChanged((authUser) => {
       if (authUser) {
         this.user(authUser.uid)
           .get('value')
-          .then(snapshot => {
+          .then((snapshot) => {
             const dbUser = snapshot.data();
 
             // default empty roles
@@ -58,6 +61,7 @@ class Firebase {
             }
 
             // merge auth and db user
+            // eslint-disable-next-line no-param-reassign
             authUser = {
               uid: authUser.uid,
               email: authUser.email,
@@ -73,21 +77,26 @@ class Firebase {
       }
     });
 
-       // *** User API ***
+  // *** User API ***
 
-    user = uid => this.db.doc(`users/${uid}`);
+  user = (uid) => this.db.doc(`users/${uid}`);
 
-    users = () => this.db.collection('users');
-    humidity = () => this.db.collection('humidity');
-    temperature = () => this.db.collection('temperature');
-    pressure = () => this.db.collection('pressure');
-    humidity_g = () => this.db.collection('humidity_g');
-    
-    // *** Message API ***
-    
-    message = uid => this.db.doc(`messages/${uid}`);
-    
-    messages = () => this.db.collection('messages');
+  users = () => this.db.collection('users');
+
+  humidity = () => this.db.collection('humidity');
+
+  temperature = () => this.db.collection('temperature');
+
+  pressure = () => this.db.collection('pressure');
+
+  // eslint-disable-next-line camelcase
+  humidity_g = () => this.db.collection('humidity_g');
+
+  // *** Message API ***
+
+  message = (uid) => this.db.doc(`messages/${uid}`);
+
+  messages = () => this.db.collection('messages');
 }
 
 export default Firebase;

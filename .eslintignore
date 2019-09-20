@@ -1,0 +1,12 @@
+**/*.ts
+**/*.tsx
+**/*.json
+**/*.css
+**/*.scss
+**/*.png
+**/*.jpg
+**/*.ttf
+**/*.md
+**/*.html
+serviceWorker.js
+**/*.gif

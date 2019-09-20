@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter as Router, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 import Navigation from '../Navigation';
 import LandingPage from '../Landing';
@@ -9,13 +9,12 @@ import PasswordForgetPage from '../PasswordForget';
 import HomePage from '../Home';
 import AccountPage from '../Account';
 import AdminPage from '../Admin';
+import Control from '../Control';
 
 import * as ROUTES from '../../constants/routes';
 import { withAuthentification } from '../Session';
 
-
 const App = () => (
-
   <Router>
     <div>
       <Navigation />
@@ -27,10 +26,9 @@ const App = () => (
       <Route path={ROUTES.HOME} component={HomePage} />
       <Route path={ROUTES.ACCOUNT} component={AccountPage} />
       <Route path={ROUTES.ADMIN} component={AdminPage} />
-      
+      <Route path={ROUTES.CONTROL} component={Control} />
     </div>
   </Router>
-
 );
 
 export default withAuthentification(App);

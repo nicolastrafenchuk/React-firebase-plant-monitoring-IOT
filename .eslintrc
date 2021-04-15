@@ -4,7 +4,10 @@
     "plugin:react/recommended",
     "airbnb",
     "plugin:jsx-a11y/recommended",
-    "plugin:prettier/recommended"
+    "plugin:prettier/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:react-hooks/recommended"
   ],
   "plugins": ["react", "jsx-a11y"],
   "env": {
@@ -17,7 +20,8 @@
     "react/prop-types": [0],
     "react/jsx-props-no-spreading": [0],
     "react/jsx-indent": [0],
-    "prettier/prettier": "error"
+    "prettier/prettier": "error",
+    "padded-blocks": "off"
   },
   "settings": {
     "react": {

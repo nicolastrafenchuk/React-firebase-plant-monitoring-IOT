@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-import './index.css';
+import 'typeface-roboto';
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import lightGreen from '@material-ui/core/colors/lightGreen';
@@ -11,7 +10,9 @@ import Firebase, { FirebaseContext } from './components/Firebase';
 import App from './components/App';
 import * as serviceWorker from './serviceWorker';
 
-const themme = createMuiTheme({
+import './index.css';
+
+const theme = createMuiTheme({
   palette: {
     primary: {
       light: lightGreen.A100,
@@ -33,7 +34,7 @@ const themme = createMuiTheme({
 
 ReactDOM.render(
   <MuiPickersUtilsProvider utils={DateFnsUtils}>
-    <MuiThemeProvider theme={themme}>
+    <MuiThemeProvider theme={theme}>
       <FirebaseContext.Provider value={new Firebase()}>
         <App />
       </FirebaseContext.Provider>

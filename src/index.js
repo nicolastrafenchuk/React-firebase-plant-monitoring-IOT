@@ -6,7 +6,8 @@ import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import lightGreen from '@material-ui/core/colors/lightGreen';
 import DateFnsUtils from '@date-io/date-fns';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
-import Firebase, { FirebaseContext } from './components/Firebase';
+import { AuthProvider } from './context/Auth';
+import { FirebaseProvider } from './context/Firebase';
 import App from './components/App';
 import * as serviceWorker from './serviceWorker';
 
@@ -35,9 +36,11 @@ const theme = createMuiTheme({
 ReactDOM.render(
   <MuiPickersUtilsProvider utils={DateFnsUtils}>
     <MuiThemeProvider theme={theme}>
-      <FirebaseContext.Provider value={new Firebase()}>
-        <App />
-      </FirebaseContext.Provider>
+      <FirebaseProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </FirebaseProvider>
     </MuiThemeProvider>
   </MuiPickersUtilsProvider>,
   document.getElementById('root'),

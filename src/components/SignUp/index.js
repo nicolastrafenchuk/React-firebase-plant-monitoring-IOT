@@ -1,106 +1,129 @@
-import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
-import { compose } from 'recompose';
-import { withFirebase } from '../Firebase';
+import React, {
+  useState,
+  useContext,
+  useCallback,
+  useMemo,
+  useEffect,
+} from 'react';
+import { Link, useHistory } from 'react-router-dom';
 
+import { FirebaseContext } from '../../context/Firebase';
+import { AuthContext } from '../../context/Auth';
 import * as ROUTES from '../../constants/routes';
 
-const SignUpPage = () => (
-  <div>
-    <h1>SignUp</h1>
-    <SignUpForm />
-  </div>
-);
+const SignUpPage = () => {
+  const { auth, loading } = useContext(AuthContext);
+  const history = useHistory();
 
-const INITIAL_STATE = {
-  username: '',
-  email: '',
-  passwordOne: '',
-  passwordTwo: '',
-  error: null,
+  useEffect(() => {
+    if (auth && !loading) {
+      history.replace('/');
+    }
+  }, [history, auth, loading]);
+
+  return (
+    <div>
+      <h1>SignUp</h1>
+      <SignUpForm />
+    </div>
+  );
 };
 
-class SignUpFormBase extends Component {
-  constructor(props) {
-    super(props);
+const SignUpForm = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [primaryPassword, setPrimaryPassword] = useState('');
+  const [secondaryPassword, setSecondaryPassword] = useState('');
+  const [error, setError] = useState(null);
 
-    this.state = { ...INITIAL_STATE };
-  }
+  const { doCreateUserWithEmailAndPassword } = useContext(FirebaseContext);
 
-  onSubmit = (event) => {
-    const { email, passwordOne } = this.state;
+  const onSubmit = useCallback(
+    (event) => {
+      event.preventDefault();
+      doCreateUserWithEmailAndPassword(email, primaryPassword)
+        .then(() => {
+          setUsername('');
+          setEmail('');
+          setPrimaryPassword('');
+          setSecondaryPassword('');
+          setError(null);
+        })
+        .catch((err) => {
+          setError(err);
+        });
+    },
+    [doCreateUserWithEmailAndPassword, email, primaryPassword],
+  );
 
-    // eslint-disable-next-line react/destructuring-assignment
-    this.props.firebase
-      .doCreateUserWithEmailAndPassword(email, passwordOne)
-      .then(() => {
-        this.setState({ ...INITIAL_STATE });
-        // eslint-disable-next-line react/destructuring-assignment
-        this.props.history.push(ROUTES.HOME);
-      })
-      .catch((error) => {
-        this.setState({ error });
-      });
+  const onUsernameChange = useCallback((event) => {
+    setUsername(event.target.value);
+  }, []);
 
-    event.preventDefault();
-  };
+  const onEmailChange = useCallback((event) => {
+    setEmail(event.target.value);
+  }, []);
 
-  onChange = (event) => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
+  const onPrimaryPasswordChange = useCallback((event) => {
+    setPrimaryPassword(event.target.value);
+  }, []);
 
-  render() {
-    const { username, email, passwordOne, passwordTwo, error } = this.state;
+  const onSecondaryPasswordChange = useCallback((event) => {
+    setSecondaryPassword(event.target.value);
+  }, []);
 
-    const isInvalid =
-      passwordOne !== passwordTwo ||
-      passwordOne === '' ||
-      email === '' ||
-      username === '';
+  const isInvalid = useMemo(
+    () =>
+      primaryPassword !== secondaryPassword ||
+      !primaryPassword ||
+      !secondaryPassword ||
+      !email ||
+      !username,
+    [email, primaryPassword, secondaryPassword, username],
+  );
 
-    return (
-      <form onSubmit={this.onSubmit}>
-        <input
-          name="username"
-          value={username}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Full Name"
-        />
+  return (
+    <form onSubmit={onSubmit}>
+      <input
+        name="username"
+        value={username}
+        onChange={onUsernameChange}
+        type="text"
+        placeholder="Full Name"
+      />
 
-        <input
-          name="email"
-          value={email}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Email Address"
-        />
+      <input
+        name="email"
+        value={email}
+        onChange={onEmailChange}
+        type="text"
+        placeholder="Email Address"
+      />
 
-        <input
-          name="passwordOne"
-          value={passwordOne}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Password"
-        />
+      <input
+        name="primaryPassword"
+        value={primaryPassword}
+        onChange={onPrimaryPasswordChange}
+        type="password"
+        placeholder="Password"
+      />
 
-        <input
-          name="passwordTwo"
-          value={passwordTwo}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Confirm Password"
-        />
+      <input
+        name="secondaryPassword"
+        value={secondaryPassword}
+        onChange={onSecondaryPasswordChange}
+        type="password"
+        placeholder="Confirm Password"
+      />
 
-        <button disabled={isInvalid} type="submit">
-          Sign Up
-        </button>
+      <button disabled={isInvalid} type="submit">
+        Sign Up
+      </button>
 
-        {error && <p>{error.message}</p>}
-      </form>
-    );
-  }
-}
+      {error && <p>{error.message}</p>}
+    </form>
+  );
+};
 
 const SignUpLink = () => (
   <p>
@@ -108,11 +131,6 @@ const SignUpLink = () => (
     <Link to={ROUTES.SIGN_UP}>Sign Up</Link>
   </p>
 );
-
-const SignUpForm = compose(
-  withRouter,
-  withFirebase,
-)(SignUpFormBase);
 
 export default SignUpPage;
 

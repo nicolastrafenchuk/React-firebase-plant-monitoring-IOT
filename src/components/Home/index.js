@@ -10,11 +10,6 @@ import Tab from '@material-ui/core/Tab';
 import DateFnsUtils from '@date-io/date-fns'; // choose your lib
 import { DateTimePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import { Button } from '@material-ui/core';
-import { compose } from 'recompose';
-import { withAutorization } from '../Session';
-import { withFirebase } from '../Firebase';
-
-const condition = (authUser) => !!authUser;
 
 function TabContainer(props) {
   const { children } = props;
@@ -25,7 +20,7 @@ function TabContainer(props) {
   );
 }
 
-class HomeCom extends Component {
+class Home extends Component {
   constructor(props) {
     super(props);
 
@@ -40,95 +35,95 @@ class HomeCom extends Component {
     };
   }
 
-  componentDidMount() {
-    const dataH = [];
-    const dataT = [];
-    const dataP = [];
-    const dataHG = [];
+  // componentDidMount() {
+  //   const dataH = [];
+  //   const dataT = [];
+  //   const dataP = [];
+  //   const dataHG = [];
 
-    const { firebase } = this.props;
+  //   const { firebase } = this.props;
 
-    firebase
-      .humidity()
-      .orderBy('dateAndTime', 'desc')
-      .limit(12)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((documentSnapshot) => {
-          const check = documentSnapshot.data();
-          const obj = {
-            x: `${check.dateAndTime
-              .toDate()
-              .toLocaleTimeString()} Day: ${check.dateAndTime
-              .toDate()
-              .toLocaleDateString()}`,
-            y: check.humidity.toFixed(4),
-          };
-          dataH.unshift(obj);
-        });
-        this.setState({ humidity: dataH });
-      });
-    firebase
-      .temperature()
-      .orderBy('dateAndTime', 'desc')
-      .limit(12)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((documentSnapshot) => {
-          const check = documentSnapshot.data();
-          const obj = {
-            x: `${check.dateAndTime
-              .toDate()
-              .toLocaleTimeString()} Day: ${check.dateAndTime
-              .toDate()
-              .toLocaleDateString()}`,
-            y: check.temperature.toFixed(4),
-          };
-          dataT.unshift(obj);
-        });
-        this.setState({ temperature: dataT });
-      });
-    firebase
-      .pressure()
-      .orderBy('dateAndTime', 'desc')
-      .limit(12)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((documentSnapshot) => {
-          const check = documentSnapshot.data();
-          const obj = {
-            x: `${check.dateAndTime
-              .toDate()
-              .toLocaleTimeString()} Day: ${check.dateAndTime
-              .toDate()
-              .toLocaleDateString()}`,
-            y: check.pressure.toFixed(4),
-          };
-          dataP.unshift(obj);
-        });
-        this.setState({ pressure: dataP });
-      });
-    firebase
-      .humidity_g()
-      .orderBy('dateAndTime', 'desc')
-      .limit(12)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((documentSnapshot) => {
-          const check = documentSnapshot.data();
-          const obj = {
-            x: `${check.dateAndTime
-              .toDate()
-              .toLocaleTimeString()} Day: ${check.dateAndTime
-              .toDate()
-              .toLocaleDateString()}`,
-            y: check.humidity.toFixed(4),
-          };
-          dataHG.unshift(obj);
-        });
-        this.setState({ humidity_g: dataHG });
-      });
-  }
+  //   firebase
+  //     .humidity()
+  //     .orderBy('dateAndTime', 'desc')
+  //     .limit(12)
+  //     .get()
+  //     .then((querySnapshot) => {
+  //       querySnapshot.forEach((documentSnapshot) => {
+  //         const check = documentSnapshot.data();
+  //         const obj = {
+  //           x: `${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleTimeString()} Day: ${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleDateString()}`,
+  //           y: check.humidity.toFixed(4),
+  //         };
+  //         dataH.unshift(obj);
+  //       });
+  //       this.setState({ humidity: dataH });
+  //     });
+  //   firebase
+  //     .temperature()
+  //     .orderBy('dateAndTime', 'desc')
+  //     .limit(12)
+  //     .get()
+  //     .then((querySnapshot) => {
+  //       querySnapshot.forEach((documentSnapshot) => {
+  //         const check = documentSnapshot.data();
+  //         const obj = {
+  //           x: `${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleTimeString()} Day: ${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleDateString()}`,
+  //           y: check.temperature.toFixed(4),
+  //         };
+  //         dataT.unshift(obj);
+  //       });
+  //       this.setState({ temperature: dataT });
+  //     });
+  //   firebase
+  //     .pressure()
+  //     .orderBy('dateAndTime', 'desc')
+  //     .limit(12)
+  //     .get()
+  //     .then((querySnapshot) => {
+  //       querySnapshot.forEach((documentSnapshot) => {
+  //         const check = documentSnapshot.data();
+  //         const obj = {
+  //           x: `${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleTimeString()} Day: ${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleDateString()}`,
+  //           y: check.pressure.toFixed(4),
+  //         };
+  //         dataP.unshift(obj);
+  //       });
+  //       this.setState({ pressure: dataP });
+  //     });
+  //   firebase
+  //     .humidity_g()
+  //     .orderBy('dateAndTime', 'desc')
+  //     .limit(12)
+  //     .get()
+  //     .then((querySnapshot) => {
+  //       querySnapshot.forEach((documentSnapshot) => {
+  //         const check = documentSnapshot.data();
+  //         const obj = {
+  //           x: `${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleTimeString()} Day: ${check.dateAndTime
+  //             .toDate()
+  //             .toLocaleDateString()}`,
+  //           y: check.humidity.toFixed(4),
+  //         };
+  //         dataHG.unshift(obj);
+  //       });
+  //       this.setState({ humidity_g: dataHG });
+  //     });
+  // }
 
   handleChange = (event, value) => {
     this.setState({ value });
@@ -605,10 +600,5 @@ class HomeCom extends Component {
     );
   }
 }
-
-const Home = compose(
-  withAutorization(condition),
-  withFirebase,
-)(HomeCom);
 
 export default Home;

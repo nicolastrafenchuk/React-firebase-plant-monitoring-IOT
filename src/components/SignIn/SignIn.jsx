@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   Typography,
   Grid,
@@ -9,6 +10,7 @@ import {
 import { LockOutlined } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 
+import { AuthContext } from '../../context/Auth';
 import SignInForm from './SignInForm';
 
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +51,15 @@ const useStyles = makeStyles((theme) => ({
 
 const SignInPage = () => {
   const classes = useStyles();
+
+  const { auth, loading } = useContext(AuthContext);
+  const history = useHistory();
+
+  useEffect(() => {
+    if (auth && !loading) {
+      history.replace('/');
+    }
+  }, [history, auth, loading]);
 
   return (
     <Grid container component="main" className={classes.root}>

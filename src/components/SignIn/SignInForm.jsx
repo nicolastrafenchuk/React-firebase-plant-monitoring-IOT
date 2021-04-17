@@ -1,11 +1,8 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useContext } from 'react';
 import { Button, TextField, Box, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import { compose } from 'recompose';
-import { withRouter, useHistory } from 'react-router-dom';
-import { withFirebase } from '../Firebase';
 
-import * as ROUTES from '../../constants/routes';
+import { FirebaseContext } from '../../context/Firebase';
 
 const useStyles = makeStyles((theme) => ({
   form: {
@@ -25,12 +22,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const SignInFormBase = ({ firebase }) => {
+const SignInForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
-  const history = useHistory();
+  const { doSignInWithEmailAndPassword } = useContext(FirebaseContext);
 
   const classes = useStyles();
 
@@ -38,19 +35,17 @@ const SignInFormBase = ({ firebase }) => {
     (event) => {
       event.preventDefault();
 
-      firebase
-        .doSignInWithEmailAndPassword(email, password)
+      doSignInWithEmailAndPassword(email, password)
         .then(() => {
           setEmail('');
           setPassword('');
           setError(null);
-          history.push(ROUTES.HOME);
         })
         .catch((err) => {
           setError(err);
         });
     },
-    [email, firebase, history, password],
+    [doSignInWithEmailAndPassword, email, password],
   );
 
   const onEmailChange = useCallback((event) => {
@@ -117,7 +112,5 @@ const SignInFormBase = ({ firebase }) => {
     </form>
   );
 };
-
-const SignInForm = compose(withRouter, withFirebase)(SignInFormBase);
 
 export default SignInForm;

@@ -1,153 +1,51 @@
-/* eslint-disable react/jsx-one-expression-per-line */
-/* eslint-disable prettier/prettier */
-/* eslint-disable react/jsx-no-comment-textnodes */
-import React, { Component } from 'react';
-import { ResponsiveLine } from '@nivo/line';
+import React, { useState, useCallback, useContext, useEffect } from 'react';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import DateFnsUtils from '@date-io/date-fns'; // choose your lib
+import DateFnsUtils from '@date-io/date-fns';
 import { DateTimePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import { Button } from '@material-ui/core';
 
-function TabContainer(props) {
-  const { children } = props;
-  return (
-    <Typography component="div" style={{ padding: 8 * 3 }}>
-      {children}
-    </Typography>
+import { FirebaseContext } from '../../context/Firebase';
+import TabPanel from './TabPanel';
+import VizualizationTab from './VizualizationTab';
+
+const CHART_ITEMS_LIMIT = 20;
+
+const Home = () => {
+  const [loading, setLoading] = useState(false);
+  const [humidity, setHumidity] = useState([]);
+  const [temperature, setTemperature] = useState([]);
+  const [pressure, setPressure] = useState([]);
+  const [soilMoisture, setSoilMoisture] = useState([]);
+  const [currentTab, setCurrentTab] = useState(0);
+  const [dateFrom, setDateFrom] = useState(new Date());
+  const [dateTo, setDateTo] = useState(new Date(Date.now() - 10800000));
+
+  const { getTemperatureCollection, onCollectionSnapshotListener } = useContext(
+    FirebaseContext,
   );
-}
 
-class Home extends Component {
-  constructor(props) {
-    super(props);
+  const handleTabChange = useCallback((_, value) => {
+    setCurrentTab(value);
+  }, []);
 
-    this.state = {
-      humidity: [],
-      temperature: [],
-      pressure: [],
-      humidity_g: [],
-      value: 0,
-      selectedDate: new Date(),
-      selectedDateStart: new Date(Date.now() - 10800000),
-    };
-  }
+  const handleDateToChange = useCallback((date) => {
+    setDateTo(date);
+  }, []);
 
-  // componentDidMount() {
-  //   const dataH = [];
-  //   const dataT = [];
-  //   const dataP = [];
-  //   const dataHG = [];
+  const handleDateFromChange = useCallback((date) => {
+    setDateFrom(date);
+  }, []);
 
-  //   const { firebase } = this.props;
-
-  //   firebase
-  //     .humidity()
-  //     .orderBy('dateAndTime', 'desc')
-  //     .limit(12)
-  //     .get()
-  //     .then((querySnapshot) => {
-  //       querySnapshot.forEach((documentSnapshot) => {
-  //         const check = documentSnapshot.data();
-  //         const obj = {
-  //           x: `${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleTimeString()} Day: ${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleDateString()}`,
-  //           y: check.humidity.toFixed(4),
-  //         };
-  //         dataH.unshift(obj);
-  //       });
-  //       this.setState({ humidity: dataH });
-  //     });
-  //   firebase
-  //     .temperature()
-  //     .orderBy('dateAndTime', 'desc')
-  //     .limit(12)
-  //     .get()
-  //     .then((querySnapshot) => {
-  //       querySnapshot.forEach((documentSnapshot) => {
-  //         const check = documentSnapshot.data();
-  //         const obj = {
-  //           x: `${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleTimeString()} Day: ${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleDateString()}`,
-  //           y: check.temperature.toFixed(4),
-  //         };
-  //         dataT.unshift(obj);
-  //       });
-  //       this.setState({ temperature: dataT });
-  //     });
-  //   firebase
-  //     .pressure()
-  //     .orderBy('dateAndTime', 'desc')
-  //     .limit(12)
-  //     .get()
-  //     .then((querySnapshot) => {
-  //       querySnapshot.forEach((documentSnapshot) => {
-  //         const check = documentSnapshot.data();
-  //         const obj = {
-  //           x: `${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleTimeString()} Day: ${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleDateString()}`,
-  //           y: check.pressure.toFixed(4),
-  //         };
-  //         dataP.unshift(obj);
-  //       });
-  //       this.setState({ pressure: dataP });
-  //     });
-  //   firebase
-  //     .humidity_g()
-  //     .orderBy('dateAndTime', 'desc')
-  //     .limit(12)
-  //     .get()
-  //     .then((querySnapshot) => {
-  //       querySnapshot.forEach((documentSnapshot) => {
-  //         const check = documentSnapshot.data();
-  //         const obj = {
-  //           x: `${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleTimeString()} Day: ${check.dateAndTime
-  //             .toDate()
-  //             .toLocaleDateString()}`,
-  //           y: check.humidity.toFixed(4),
-  //         };
-  //         dataHG.unshift(obj);
-  //       });
-  //       this.setState({ humidity_g: dataHG });
-  //     });
-  // }
-
-  handleChange = (event, value) => {
-    this.setState({ value });
-  };
-
-  handleDateChange = (date) => {
-    this.setState({ selectedDate: date });
-  };
-
-  handleDateChangeStart = (date) => {
-    this.setState({ selectedDateStart: date });
-  };
-
-  getDate = () => {
+  const getDate = useCallback(() => {
     const dataT = [];
 
-    const { firebase } = this.props;
-    const { selectedDateStart, selectedDate } = this.state;
-
-    firebase
-      .temperature()
+    getTemperatureCollection()
       .orderBy('dateAndTime', 'desc')
-      .where('dateAndTime', '>=', selectedDateStart)
-      .where('dateAndTime', '<=', selectedDate)
+      .where('dateAndTime', '>=', dateFrom)
+      .where('dateAndTime', '<=', dateTo)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((documentSnapshot) => {
@@ -162,443 +60,189 @@ class Home extends Component {
           };
           dataT.unshift(obj);
         });
-        this.setState({ temperature: dataT });
+        setTemperature(dataT);
       });
-  };
+  }, [dateFrom, dateTo, getTemperatureCollection]);
 
-  render() {
-    const {
-      value,
-      selectedDate,
-      selectedDateStart,
-      temperature,
-      humidity,
-      // eslint-disable-next-line camelcase
-      humidity_g,
-      pressure,
-    } = this.state;
+  useEffect(() => {
+    setLoading(true);
 
-    return (
-      <div>
-        <Tabs
-          value={value}
-          onChange={this.handleChange}
-          variant="fullWidth"
-          indicatorColor="secondary"
-        >
-          <Tab label="Temperature" />
-          <Tab label="Humidity" />
-          <Tab label="Moisture" />
-          <Tab label="Pressure" />
-        </Tabs>
-        {value === 0 && (
-          <TabContainer>
-            <Paper>
-              <div style={{ height: 530 }}>
-                <ResponsiveLine
-                  data={[
-                    {
-                      id: 'Temperature',
-                      color: 'hsl(205, 70%, 50%)',
-                      data: temperature,
-                      fontSize: 20,
-                    },
-                  ]}
-                  margin={{
-                    top: 10,
-                    right: 50,
-                    bottom: 0,
-                    left: 50,
-                  }}
-                  xScale={{
-                    type: 'point',
-                  }}
-                  yScale={{
-                    type: 'linear',
-                    stacked: false,
-                    min: 'auto',
-                    max: 'auto',
-                  }}
-                  curve="monotoneX"
-                  colors={{
-                    scheme: 'set1',
-                  }}
-                  enableDots={false}
-                  enableArea
-                  dotSize={10}
-                  lineWidth={5}
-                  dotColor={{
-                    theme: 'background',
-                  }}
-                  dotBorderWidth={2}
-                  dotBorderColor={{
-                    from: 'color',
-                  }}
-                  tooltip={(slice) => (
-                    <div style={{ color: '#000' }}>
-                      <div>{`Time: ${slice.id}`}</div>
-                      {slice.data.map((d) => (
-                        <div
-                          key={d.serie.id}
-                          style={{
-                            padding: '3px 0',
-                            color: '#000',
-                          }}
-                        >
-                          // eslint-disable-next-line
-                          react/jsx-one-expression-per-line
-                          <strong>{d.serie.id}: </strong> {d.data.y}
-                          °C 🌡
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  enableDotLabel={false}
-                  dotLabel="y"
-                  dotLabelYOffset={-12}
-                  animate
-                  motionStiffness={90}
-                  motionDamping={15}
-                  areaOpacity={0.1}
-                  enableGridX={false}
-                />
-              </div>
-            </Paper>
-          </TabContainer>
-        )}
-        {value === 1 && (
-          <TabContainer>
-            <Paper style={{ margin: 10 }}>
-              <div style={{ height: 530 }}>
-                <ResponsiveLine
-                  data={[
-                    {
-                      id: 'Humidity, 💧 %Rh',
-                      color: 'hsl(205, 70%, 50%)',
-                      data: humidity,
-                    },
-                  ]}
-                  margin={{
-                    top: 50,
-                    right: 140,
-                    bottom: 0,
-                    left: 50,
-                  }}
-                  xScale={{
-                    type: 'point',
-                  }}
-                  yScale={{
-                    type: 'linear',
-                    stacked: false,
-                    min: 'auto',
-                    max: 'auto',
-                  }}
-                  curve="monotoneX"
-                  colors={{
-                    scheme: 'paired',
-                  }}
-                  enableDots={false}
-                  enableArea
-                  dotSize={10}
-                  lineWidth={5}
-                  dotColor={{
-                    theme: 'background',
-                  }}
-                  dotBorderWidth={2}
-                  dotBorderColor={{
-                    from: 'color',
-                  }}
-                  tooltip={(slice) => (
-                    <div style={{ color: '#000' }}>
-                      <div>{`Time: ${slice.id}`}</div>
-                      {slice.data.map((d) => (
-                        <div
-                          key={d.serie.id}
-                          style={{
-                            padding: '3px 0',
-                            color: '#000',
-                          }}
-                        >
-                          <strong>{d.serie.id}</strong> [{d.data.y}]
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  enableDotLabel={false}
-                  dotLabel="y"
-                  dotLabelYOffset={-12}
-                  animate
-                  motionStiffness={90}
-                  motionDamping={15}
-                  areaOpacity={0.1}
-                  enableGridX={false}
-                  legends={[
-                    {
-                      anchor: 'right',
-                      direction: 'column',
-                      justify: false,
-                      translateX: 100,
-                      translateY: 0,
-                      itemsSpacing: 0,
-                      itemDirection: 'left-to-right',
-                      itemWidth: 80,
-                      itemHeight: 20,
-                      itemOpacity: 0.75,
-                      symbolSize: 12,
-                      symbolShape: 'circle',
-                      symbolBorderColor: 'rgba(0, 0, 0, .5)',
-                      'font-size': '20px',
-                      effects: [
-                        {
-                          on: 'hover',
-                          style: {
-                            itemBackground: 'rgba(0, 0, 0, .03)',
-                            itemOpacity: 1,
-                          },
-                        },
-                      ],
-                    },
-                  ]}
-                />
-              </div>
-            </Paper>
-          </TabContainer>
-        )}
-        {value === 2 && (
-          <TabContainer>
-            <Paper style={{ margin: 10 }}>
-              <div style={{ height: 530 }}>
-                <ResponsiveLine
-                  data={[
-                    {
-                      id: 'Moisture, 💧 %Rh',
-                      color: 'hsl(205, 70%, 50%)',
-                      data: humidity_g,
-                    },
-                  ]}
-                  margin={{
-                    top: 50,
-                    right: 140,
-                    bottom: 0,
-                    left: 50,
-                  }}
-                  xScale={{
-                    type: 'point',
-                  }}
-                  yScale={{
-                    type: 'linear',
-                    stacked: false,
-                    min: 'auto',
-                    max: 'auto',
-                  }}
-                  curve="monotoneX"
-                  colors={{
-                    scheme: 'set2',
-                  }}
-                  enableDots={false}
-                  enableArea
-                  dotSize={10}
-                  lineWidth={5}
-                  dotColor={{
-                    theme: 'background',
-                  }}
-                  dotBorderWidth={2}
-                  dotBorderColor={{
-                    from: 'color',
-                  }}
-                  tooltip={(slice) => (
-                    <div style={{ color: '#000' }}>
-                      <div>{`Time: ${slice.id}`}</div>
-                      {slice.data.map((d) => (
-                        <div
-                          key={d.serie.id}
-                          style={{
-                            padding: '3px 0',
-                            color: '#000',
-                          }}
-                        >
-                          <strong>{d.serie.id}</strong> [{d.data.y}]
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  enableDotLabel={false}
-                  dotLabel="y"
-                  dotLabelYOffset={-12}
-                  animate
-                  motionStiffness={90}
-                  motionDamping={15}
-                  areaOpacity={0.1}
-                  enableGridX={false}
-                  legends={[
-                    {
-                      anchor: 'right',
-                      direction: 'column',
-                      justify: false,
-                      translateX: 100,
-                      translateY: 0,
-                      itemsSpacing: 0,
-                      itemDirection: 'left-to-right',
-                      itemWidth: 80,
-                      itemHeight: 20,
-                      itemOpacity: 0.75,
-                      symbolSize: 12,
-                      symbolShape: 'circle',
-                      symbolBorderColor: 'rgba(0, 0, 0, .5)',
-                      effects: [
-                        {
-                          on: 'hover',
-                          style: {
-                            itemBackground: 'rgba(0, 0, 0, .03)',
-                            itemOpacity: 1,
-                          },
-                        },
-                      ],
-                    },
-                  ]}
-                />
-              </div>
-            </Paper>
-          </TabContainer>
-        )}
-        {value === 3 && (
-          <TabContainer>
-            <Paper style={{ margin: 10 }}>
-              <div style={{ height: 530 }}>
-                <ResponsiveLine
-                  style={{ fontSize: 20 }}
-                  data={[
-                    {
-                      id: 'Pressure, hPa',
-                      color: 'hsl(205, 70%, 50%)',
-                      data: pressure,
-                    },
-                  ]}
-                  margin={{
-                    top: 50,
-                    right: 140,
-                    bottom: 0,
-                    left: 50,
-                  }}
-                  xScale={{
-                    type: 'point',
-                  }}
-                  yScale={{
-                    type: 'linear',
-                    stacked: false,
-                    min: 'auto',
-                    max: 'auto',
-                  }}
-                  curve="monotoneX"
-                  colors={{
-                    scheme: 'nivo',
-                  }}
-                  enableDots={false}
-                  enableArea
-                  dotSize={10}
-                  lineWidth={5}
-                  dotColor={{
-                    theme: 'background',
-                  }}
-                  dotBorderWidth={2}
-                  dotBorderColor={{
-                    from: 'color',
-                  }}
-                  tooltip={(slice) => (
-                    <div style={{ color: '#000' }}>
-                      <div>{`Time: ${slice.id}`}</div>
-                      {slice.data.map((d) => (
-                        <div
-                          key={d.serie.id}
-                          style={{
-                            padding: '3px 0',
-                            color: '#000',
-                          }}
-                        >
-                          <strong>{d.serie.id}</strong> [{d.data.y}]
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  enableDotLabel={false}
-                  dotLabel="y"
-                  dotLabelYOffset={-12}
-                  animate
-                  motionStiffness={90}
-                  motionDamping={15}
-                  areaOpacity={0.1}
-                  enableGridX={false}
-                  legends={[
-                    {
-                      anchor: 'right',
-                      direction: 'column',
-                      justify: false,
-                      translateX: 100,
-                      translateY: 0,
-                      itemsSpacing: 0,
-                      itemDirection: 'left-to-right',
-                      itemWidth: 80,
-                      itemHeight: 20,
-                      itemOpacity: 0.75,
-                      symbolSize: 12,
-                      symbolShape: 'circle',
-                      symbolBorderColor: 'rgba(0, 0, 0, .5)',
-                      effects: [
-                        {
-                          on: 'hover',
-                          style: {
-                            itemBackground: 'rgba(0, 0, 0, .03)',
-                            itemOpacity: 1,
-                          },
-                        },
-                      ],
-                    },
-                  ]}
-                />
-              </div>
-            </Paper>
-          </TabContainer>
-        )}
-        <Paper
-          style={{
-            paddingTop: 20,
-            paddingBottom: 20,
-            marginLeft: 25,
-            marginRight: 25,
-            textAlign: 'center',
-          }}
-        >
+    const [
+      tempChangeListerRemove,
+      humidityChangeListerRemove,
+      soilMoistureListenerRemove,
+      pressureChangeListerRemove,
+    ] = [
+      {
+        collection: 'temperature',
+        limit: CHART_ITEMS_LIMIT,
+        callback: (temperatureData) => {
+          setTemperature(temperatureData);
+        },
+      },
+      {
+        collection: 'humidity',
+        limit: CHART_ITEMS_LIMIT,
+        callback: (humidityData) => {
+          setHumidity(humidityData);
+        },
+      },
+      {
+        collection: 'humidity_g',
+        limit: CHART_ITEMS_LIMIT,
+        valueName: 'humidity',
+        callback: (soilMoistureData) => {
+          setSoilMoisture(soilMoistureData);
+        },
+      },
+      {
+        collection: 'pressure',
+        limit: CHART_ITEMS_LIMIT,
+        callback: (pressureData) => {
+          setPressure(pressureData);
+        },
+      },
+    ].map(({ collection, limit, valueName = '', callback }) => {
+      if (valueName) {
+        return onCollectionSnapshotListener(
+          collection,
+          limit,
+          callback,
+          valueName,
+        );
+      }
+
+      return onCollectionSnapshotListener(collection, limit, callback);
+    });
+
+    return () => {
+      tempChangeListerRemove();
+      humidityChangeListerRemove();
+      soilMoistureListenerRemove();
+      pressureChangeListerRemove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (
+      temperature.length &&
+      humidity.length &&
+      pressure.length &&
+      soilMoisture.length
+    ) {
+      setLoading(false);
+    }
+  }, [
+    humidity.length,
+    pressure.length,
+    soilMoisture.length,
+    temperature.length,
+  ]);
+
+  return (
+    <>
+      <Tabs
+        value={currentTab}
+        onChange={handleTabChange}
+        variant="fullWidth"
+        indicatorColor="secondary"
+        aria-label="vizualization-tabs"
+      >
+        <Tab label="Temperature" />
+        <Tab label="Humidity" />
+        <Tab label="Moisture" />
+        <Tab label="Pressure" />
+      </Tabs>
+      <TabPanel
+        value={currentTab}
+        index={0}
+        id="viz-tab-0"
+        aria-controls="viz-tabpanel-0"
+      >
+        <VizualizationTab
+          data={temperature}
+          label="Temperature, 🌡 ℃"
+          colorScheme="set1"
+          loading={loading}
+        />
+      </TabPanel>
+      <TabPanel
+        value={currentTab}
+        index={1}
+        id="viz-tab-1"
+        aria-controls="viz-tabpanel-1"
+      >
+        <VizualizationTab
+          data={humidity}
+          label="Humidity, 💧 %Rh"
+          colorScheme="paired"
+          loading={loading}
+        />
+      </TabPanel>
+      <TabPanel
+        value={currentTab}
+        index={2}
+        id="viz-tab-2"
+        aria-controls="viz-tabpanel-2"
+      >
+        <VizualizationTab
+          data={soilMoisture}
+          label="Moisture, 💧 %Rh"
+          colorScheme="set2"
+          loading={loading}
+        />
+      </TabPanel>
+      <TabPanel
+        value={currentTab}
+        index={3}
+        id="viz-tab-3"
+        aria-controls="viz-tabpanel-3"
+      >
+        <VizualizationTab
+          data={pressure}
+          label="Pressure, ⬇️ hPa"
+          colorScheme="nivo"
+          loading={loading}
+        />
+      </TabPanel>
+      <Paper
+        style={{
+          paddingTop: 20,
+          paddingBottom: 20,
+          margin: '0 20px',
+          textAlign: 'center',
+        }}
+      >
+        <Typography display="inline" variant="subtitle1">
+          Now showing period{' '}
+        </Typography>
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
           <Typography display="inline" variant="subtitle1">
-            Now showing period{' '}
+            from:
           </Typography>
-          <MuiPickersUtilsProvider utils={DateFnsUtils}>
-            <Typography display="inline" variant="subtitle1">
-              from:
-            </Typography>
-            <DateTimePicker
-              color="inherit"
-              ampm={false}
-              showTodayButton
-              value={selectedDateStart}
-              onChange={this.handleDateChangeStart}
-              style={{ marginLeft: 15, marginRight: 15 }}
-            />
-            <Typography display="inline" variant="subtitle1">
-              to:
-            </Typography>
-            <DateTimePicker
-              ampm={false}
-              showTodayButton
-              value={selectedDate}
-              onChange={this.handleDateChange}
-              style={{ marginLeft: 15, marginRight: 15 }}
-            />
-          </MuiPickersUtilsProvider>
-          <Button onClick={this.getDate}>Set period</Button>
-        </Paper>
-      </div>
-    );
-  }
-}
+          <DateTimePicker
+            ampm={false}
+            showTodayButton
+            value={dateFrom}
+            onChange={handleDateFromChange}
+            style={{ marginLeft: 15, marginRight: 15 }}
+          />
+          <Typography display="inline" variant="subtitle1">
+            to:
+          </Typography>
+          <DateTimePicker
+            ampm={false}
+            showTodayButton
+            value={dateTo}
+            onChange={handleDateToChange}
+            style={{ marginLeft: 15, marginRight: 15 }}
+          />
+        </MuiPickersUtilsProvider>
+        <Button onClick={getDate}>Set period</Button>
+      </Paper>
+    </>
+  );
+};
 
 export default Home;

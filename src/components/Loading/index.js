@@ -1,4 +1,6 @@
 import FullScreenLoading from './FullScreen';
+import Loading from './Loading';
 
-// eslint-disable-next-line import/prefer-default-export
+export default Loading;
+
 export { FullScreenLoading };

@@ -60,14 +60,58 @@ class Firebase {
 
   users = () => this.db.collection('users');
 
-  humidity = () => this.db.collection('humidity');
+  getHumidityCollection = () => this.db.collection('humidity');
 
-  temperature = () => this.db.collection('temperature');
+  getTemperatureCollection = () => this.db.collection('temperature');
 
-  pressure = () => this.db.collection('pressure');
+  getCollWithLimit = (collection, limit, valueName = '') =>
+    this.db
+      .collection(collection)
+      .orderBy('dateAndTime')
+      .limitToLast(limit)
+      .get()
+      .then((querySnapshot) => {
+        const snapshotData = querySnapshot.docs.map((doc) => {
+          const dateWithTime = doc.get('dateAndTime');
+          const value = doc.get(valueName || collection);
+          return {
+            x: `${dateWithTime
+              .toDate()
+              .toLocaleTimeString()} Day: ${dateWithTime
+              .toDate()
+              .toLocaleDateString()}`,
+            y: value.toFixed(4),
+          };
+        });
 
-  // eslint-disable-next-line camelcase
-  humidity_g = () => this.db.collection('humidity_g');
+        return snapshotData;
+      });
+
+  getPressureCollection = () => this.db.collection('pressure');
+
+  getSoilMoistureCollection = () => this.db.collection('humidity_g');
+
+  onCollectionSnapshotListener = (collection, limit, next, valueName = '') =>
+    this.db
+      .collection(collection)
+      .orderBy('dateAndTime')
+      .limitToLast(limit)
+      .onSnapshot((querySnapshot) => {
+        const snapshotData = querySnapshot.docs.map((doc) => {
+          const dateWithTime = doc.get('dateAndTime');
+          const value = doc.get(valueName || collection);
+          return {
+            x: `${dateWithTime
+              .toDate()
+              .toLocaleTimeString()} Day: ${dateWithTime
+              .toDate()
+              .toLocaleDateString()}`,
+            y: value.toFixed(4),
+          };
+        });
+
+        next(snapshotData);
+      });
 
   message = (uid) => this.db.doc(`messages/${uid}`);
 

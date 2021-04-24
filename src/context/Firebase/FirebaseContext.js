@@ -75,11 +75,7 @@ class Firebase {
           const dateWithTime = doc.get('dateAndTime');
           const value = doc.get(valueName || collection);
           return {
-            x: `${dateWithTime
-              .toDate()
-              .toLocaleTimeString()} Day: ${dateWithTime
-              .toDate()
-              .toLocaleDateString()}`,
+            x: dateWithTime.toDate().toISOString(),
             y: value.toFixed(4),
           };
         });
@@ -101,11 +97,27 @@ class Firebase {
           const dateWithTime = doc.get('dateAndTime');
           const value = doc.get(valueName || collection);
           return {
-            x: `${dateWithTime
-              .toDate()
-              .toLocaleTimeString()} Day: ${dateWithTime
-              .toDate()
-              .toLocaleDateString()}`,
+            x: dateWithTime.toDate().toISOString(),
+            y: value.toFixed(4),
+          };
+        });
+
+        next(snapshotData);
+      });
+
+  getCollectionWithPeriod = (collection, from, to, next, valueName = '') =>
+    this.db
+      .collection(collection)
+      .orderBy('dateAndTime', 'asc')
+      .where('dateAndTime', '>=', from)
+      .where('dateAndTime', '<=', to)
+      .get()
+      .then((querySnapshot) => {
+        const snapshotData = querySnapshot.docs.map((doc) => {
+          const dateWithTime = doc.get('dateAndTime');
+          const value = doc.get(valueName || collection);
+          return {
+            x: dateWithTime.toDate().toISOString(),
             y: value.toFixed(4),
           };
         });

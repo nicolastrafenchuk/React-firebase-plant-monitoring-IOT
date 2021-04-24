@@ -1,17 +1,18 @@
-import React, { useState, useCallback, useContext, useEffect } from 'react';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
+import React, {
+  useState,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from 'react';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import DateFnsUtils from '@date-io/date-fns';
-import { DateTimePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
-import { Button } from '@material-ui/core';
 
 import { FirebaseContext } from '../../context/Firebase';
 import TabPanel from './TabPanel';
 import VizualizationTab from './VizualizationTab';
 
-const CHART_ITEMS_LIMIT = 20;
+const CHART_ITEMS_LIMIT = 5;
 
 const Home = () => {
   const [loading, setLoading] = useState(false);
@@ -21,9 +22,13 @@ const Home = () => {
   const [soilMoisture, setSoilMoisture] = useState([]);
   const [currentTab, setCurrentTab] = useState(0);
   const [dateFrom, setDateFrom] = useState(new Date());
-  const [dateTo, setDateTo] = useState(new Date(Date.now() - 10800000));
+  const [dateTo, setDateTo] = useState(new Date());
+  const tempOnChangeListener = useRef();
+  const humidityOnChangeListener = useRef();
+  const soilMoistureOnChangeListener = useRef();
+  const pressureOnChangeListener = useRef();
 
-  const { getTemperatureCollection, onCollectionSnapshotListener } = useContext(
+  const { onCollectionSnapshotListener, getCollectionWithPeriod } = useContext(
     FirebaseContext,
   );
 
@@ -39,30 +44,44 @@ const Home = () => {
     setDateFrom(date);
   }, []);
 
-  const getDate = useCallback(() => {
-    const dataT = [];
+  const getPeriodData = useCallback(() => {
+    const collections = ['temperature', 'humidity', 'humidity_g', 'pressure'];
+    const callbacks = [
+      setTemperature,
+      setHumidity,
+      setSoilMoisture,
+      setPressure,
+    ];
 
-    getTemperatureCollection()
-      .orderBy('dateAndTime', 'desc')
-      .where('dateAndTime', '>=', dateFrom)
-      .where('dateAndTime', '<=', dateTo)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((documentSnapshot) => {
-          const check = documentSnapshot.data();
-          const obj = {
-            x: `${check.dateAndTime
-              .toDate()
-              .toLocaleTimeString()} Day: ${check.dateAndTime
-              .toDate()
-              .toLocaleDateString()}`,
-            y: check.temperature.toFixed(4),
-          };
-          dataT.unshift(obj);
-        });
-        setTemperature(dataT);
-      });
-  }, [dateFrom, dateTo, getTemperatureCollection]);
+    if (
+      tempOnChangeListener.current &&
+      humidityOnChangeListener.current &&
+      soilMoistureOnChangeListener.current &&
+      pressureOnChangeListener.current
+    ) {
+      tempOnChangeListener.current();
+      humidityOnChangeListener.current();
+      soilMoistureOnChangeListener.current();
+      pressureOnChangeListener.current();
+
+      tempOnChangeListener.current = null;
+      humidityOnChangeListener.current = null;
+      soilMoistureOnChangeListener.current = null;
+      pressureOnChangeListener.current = null;
+    }
+
+    setLoading(true);
+
+    getCollectionWithPeriod(
+      collections[currentTab],
+      dateFrom,
+      dateTo,
+      callbacks[currentTab],
+      currentTab === 2 ? 'humidity' : '',
+    ).then(() => {
+      setLoading(false);
+    });
+  }, [currentTab, dateFrom, dateTo, getCollectionWithPeriod]);
 
   useEffect(() => {
     setLoading(true);
@@ -115,11 +134,23 @@ const Home = () => {
       return onCollectionSnapshotListener(collection, limit, callback);
     });
 
+    tempOnChangeListener.current = tempChangeListerRemove;
+    humidityOnChangeListener.current = humidityChangeListerRemove;
+    soilMoistureOnChangeListener.current = soilMoistureListenerRemove;
+    pressureOnChangeListener.current = pressureChangeListerRemove;
+
     return () => {
-      tempChangeListerRemove();
-      humidityChangeListerRemove();
-      soilMoistureListenerRemove();
-      pressureChangeListerRemove();
+      if (
+        tempOnChangeListener.current &&
+        humidityOnChangeListener.current &&
+        soilMoistureOnChangeListener.current &&
+        pressureOnChangeListener.current
+      ) {
+        tempChangeListerRemove();
+        humidityChangeListerRemove();
+        soilMoistureListenerRemove();
+        pressureChangeListerRemove();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -165,6 +196,11 @@ const Home = () => {
           label="Temperature, 🌡 ℃"
           colorScheme="set1"
           loading={loading}
+          handleDateToChange={handleDateToChange}
+          handleDateFromChange={handleDateFromChange}
+          getPeriodData={getPeriodData}
+          dateTo={dateTo}
+          dateFrom={dateFrom}
         />
       </TabPanel>
       <TabPanel
@@ -178,6 +214,11 @@ const Home = () => {
           label="Humidity, 💧 %Rh"
           colorScheme="paired"
           loading={loading}
+          handleDateToChange={handleDateToChange}
+          handleDateFromChange={handleDateFromChange}
+          getPeriodData={getPeriodData}
+          dateTo={dateTo}
+          dateFrom={dateFrom}
         />
       </TabPanel>
       <TabPanel
@@ -191,6 +232,11 @@ const Home = () => {
           label="Moisture, 💧 %Rh"
           colorScheme="set2"
           loading={loading}
+          handleDateToChange={handleDateToChange}
+          handleDateFromChange={handleDateFromChange}
+          getPeriodData={getPeriodData}
+          dateTo={dateTo}
+          dateFrom={dateFrom}
         />
       </TabPanel>
       <TabPanel
@@ -204,43 +250,13 @@ const Home = () => {
           label="Pressure, ⬇️ hPa"
           colorScheme="nivo"
           loading={loading}
+          handleDateToChange={handleDateToChange}
+          handleDateFromChange={handleDateFromChange}
+          getPeriodData={getPeriodData}
+          dateTo={dateTo}
+          dateFrom={dateFrom}
         />
       </TabPanel>
-      <Paper
-        style={{
-          paddingTop: 20,
-          paddingBottom: 20,
-          margin: '0 20px',
-          textAlign: 'center',
-        }}
-      >
-        <Typography display="inline" variant="subtitle1">
-          Now showing period{' '}
-        </Typography>
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
-          <Typography display="inline" variant="subtitle1">
-            from:
-          </Typography>
-          <DateTimePicker
-            ampm={false}
-            showTodayButton
-            value={dateFrom}
-            onChange={handleDateFromChange}
-            style={{ marginLeft: 15, marginRight: 15 }}
-          />
-          <Typography display="inline" variant="subtitle1">
-            to:
-          </Typography>
-          <DateTimePicker
-            ampm={false}
-            showTodayButton
-            value={dateTo}
-            onChange={handleDateToChange}
-            style={{ marginLeft: 15, marginRight: 15 }}
-          />
-        </MuiPickersUtilsProvider>
-        <Button onClick={getDate}>Set period</Button>
-      </Paper>
     </>
   );
 };

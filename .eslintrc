@@ -22,7 +22,7 @@
     "react/jsx-indent": [0],
     "prettier/prettier": "error",
     "padded-blocks": "off",
-    "no-unused-vars": "warn"
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
   },
   "settings": {
     "react": {

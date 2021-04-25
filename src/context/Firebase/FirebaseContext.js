@@ -125,6 +125,53 @@ class Firebase {
         next(snapshotData);
       });
 
+  getRules = (rules) =>
+    this.db
+      .collection(rules)
+      .orderBy('from', 'asc')
+      .get()
+      .then((querySnapshot) => {
+        const snapshotData = querySnapshot.docs.map((doc) => {
+          const from = doc.get('from');
+          const to = doc.get('to');
+          return {
+            from: from.toDate(),
+            to: to.toDate(),
+            id: doc.id,
+          };
+        });
+
+        return snapshotData;
+      });
+
+  saveRule = (from, to, collection) =>
+    this.db.collection(collection).add({
+      from,
+      to,
+    });
+
+  deleteRule = (id, collection) =>
+    this.db.collection(collection).doc(id).delete();
+
+  getAutoRule = (docName) =>
+    this.db
+      .collection('autoRules')
+      .doc(docName)
+      .get()
+      .then((doc) => {
+        return doc.data();
+      });
+
+  updateAutoRule = (enabled, docName) =>
+    this.db.collection('autoRules').doc(docName).update({
+      enabled,
+    });
+
+  updateCriticalValue = (criticalValue, docName) =>
+    this.db.collection('autoRules').doc(docName).update({
+      criticalValue,
+    });
+
   message = (uid) => this.db.doc(`messages/${uid}`);
 
   messages = () => this.db.collection('messages');
